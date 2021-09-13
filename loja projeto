@@ -1,0 +1,353 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+plt.style.use("seaborn")
+Forma alternativa de carregar os arquivos.
+
+In [2]:
+from google.colab import files
+arquivo = files.upload()
+Saving AdventureWorks.xlsx to AdventureWorks (1).xlsx
+Criando o Dataframe a partir do arquivo carregado.
+
+In [3]:
+df = pd.read_excel("AdventureWorks.xlsx")
+In [4]:
+df.sample(5)
+Out[4]:
+Data Venda	Data Envio	ID Loja	ID Produto	ID Cliente	No. Venda	Custo Unitário	Preço Unitário	Quantidade	Valor Desconto	Valor Venda	Produto	Fabricante	Marca	Classe	Cor
+515	2009-02-27	2009-03-11	199	366	18918	200902273CS826	348.58	758.0	10	379.0	7201.0	Adventure Works Laptop15.4W M1548 Black	Adventure Works	Adventure Works	Regular	Black
+822	2008-12-31	2009-01-06	199	1202	18902	200812314CS810	330.66	998.0	6	1197.6	4790.4	Fabrikam Trendsetter 1/3'' 8.5mm X200 Grey	Fabrikam, Inc.	Fabrikam	Regular	Grey
+408	2009-06-26	2009-07-07	307	1178	19127	200906264CS717	330.66	998.0	12	1197.6	10778.4	Fabrikam Trendsetter 1/3'' 8.5mm X200 White	Fabrikam, Inc.	Fabrikam	Regular	White
+374	2008-11-21	2008-12-04	199	1203	18889	200811214CS796	324.69	980.0	14	2744.0	10976.0	Fabrikam Trendsetter 2/3'' 17mm X100 Grey	Fabrikam, Inc.	Fabrikam	Regular	Grey
+639	2009-03-15	2009-03-27	307	1155	19118	200903154CS708	324.69	980.0	5	980.0	3920.0	Fabrikam Trendsetter 2/3'' 17mm X100 Black	Fabrikam, Inc.	Fabrikam	Regular	Black
+Neste dataframe, o valor de "Valor Venda" já representa o valor de Receita representa o valor do produto com o desconto.
+
+A quantidade linhas e colunas do dataframe.
+
+In [5]:
+df.shape
+Out[5]:
+(904, 16)
+O valor da receita total do dataframe.
+
+In [6]:
+df["Valor Venda"].sum()
+Out[6]:
+5984606.1426
+Já os tipos de dados que ela contém:
+
+In [7]:
+df.dtypes
+Out[7]:
+Data Venda        datetime64[ns]
+Data Envio        datetime64[ns]
+ID Loja                    int64
+ID Produto                 int64
+ID Cliente                 int64
+No. Venda                 object
+Custo Unitário           float64
+Preço Unitário           float64
+Quantidade                 int64
+Valor Desconto           float64
+Valor Venda              float64
+Produto                   object
+Fabricante                object
+Marca                     object
+Classe                    object
+Cor                       object
+dtype: object
+Para saber o curso total, será necessário criar uma coluna chamanda "Custo" para depois fazermos o somatório desses valores.
+
+In [8]:
+df["Custo"] = df["Custo Unitário"] * df["Quantidade"]
+In [9]:
+df["Custo"].head(1)
+Out[9]:
+0    2091.48
+Name: Custo, dtype: float64
+In [10]:
+df["Custo"].sum()
+Out[10]:
+2486783.05
+Caso seja necessário arrendondar os valores, usa-se o método round()
+
+In [11]:
+round(df["Custo"].sum(), 2)
+Out[11]:
+2486783.05
+Para se encontrar o lucro deve-se calcular o ( valor de venda - valor de custo )
+
+In [12]:
+df["Lucro"] = df["Valor Venda"] - df["Custo"]
+In [13]:
+df.head(1)
+Out[13]:
+Data Venda	Data Envio	ID Loja	ID Produto	ID Cliente	No. Venda	Custo Unitário	Preço Unitário	Quantidade	Valor Desconto	Valor Venda	Produto	Fabricante	Marca	Classe	Cor	Custo	Lucro
+0	2008-05-09	2008-05-29	199	384	18839	200805093CS607	348.58	758.0	6	0.0	4548.0	Adventure Works Laptop15.4W M1548 Red	Adventure Works	Adventure Works	Regular	Red	2091.48	2456.52
+Calculando o lucro total:
+
+In [14]:
+round(df["Lucro"].sum(), 2)
+Out[14]:
+3497823.09
+Para se calcular o tempo gasto para o envio de um produto, basta subtrair a datas:
+
+In [15]:
+df["Data_Envio"] = df["Data Envio"] - df["Data Venda"]
+In [16]:
+df.head(1)
+Out[16]:
+Data Venda	Data Envio	ID Loja	ID Produto	ID Cliente	No. Venda	Custo Unitário	Preço Unitário	Quantidade	Valor Desconto	Valor Venda	Produto	Fabricante	Marca	Classe	Cor	Custo	Lucro	Data_Envio
+0	2008-05-09	2008-05-29	199	384	18839	200805093CS607	348.58	758.0	6	0.0	4548.0	Adventure Works Laptop15.4W M1548 Red	Adventure Works	Adventure Works	Regular	Red	2091.48	2456.52	20 days
+Como a Data_Envio ficou no formato (20 days) é necessário deixar esse valor como numerico para se determinar, por exemplo o tempo médio de envio. Para isso:
+
+In [17]:
+df["Data_Envio"] = (df["Data Envio"] - df["Data Venda"]).dt.days
+In [18]:
+df.head(1)
+Out[18]:
+Data Venda	Data Envio	ID Loja	ID Produto	ID Cliente	No. Venda	Custo Unitário	Preço Unitário	Quantidade	Valor Desconto	Valor Venda	Produto	Fabricante	Marca	Classe	Cor	Custo	Lucro	Data_Envio
+0	2008-05-09	2008-05-29	199	384	18839	200805093CS607	348.58	758.0	6	0.0	4548.0	Adventure Works Laptop15.4W M1548 Red	Adventure Works	Adventure Works	Regular	Red	2091.48	2456.52	20
+In [19]:
+df = df.rename(columns={"Data_Envio":"Tempo_Envio_Dias"})
+In [20]:
+df.head()
+Out[20]:
+Data Venda	Data Envio	ID Loja	ID Produto	ID Cliente	No. Venda	Custo Unitário	Preço Unitário	Quantidade	Valor Desconto	Valor Venda	Produto	Fabricante	Marca	Classe	Cor	Custo	Lucro	Tempo_Envio_Dias
+0	2008-05-09	2008-05-29	199	384	18839	200805093CS607	348.58	758.0	6	0.0	4548.0	Adventure Works Laptop15.4W M1548 Red	Adventure Works	Adventure Works	Regular	Red	2091.48	2456.52	20
+1	2008-05-12	2008-05-17	306	384	19051	200805123CS567	348.58	758.0	6	0.0	4548.0	Adventure Works Laptop15.4W M1548 Red	Adventure Works	Adventure Works	Regular	Red	2091.48	2456.52	5
+2	2008-05-14	2008-05-20	306	384	19052	200805143CS576	348.58	758.0	6	0.0	4548.0	Adventure Works Laptop15.4W M1548 Red	Adventure Works	Adventure Works	Regular	Red	2091.48	2456.52	6
+3	2008-05-21	2008-05-27	306	384	19052	200805213CS576	348.58	758.0	6	0.0	4548.0	Adventure Works Laptop15.4W M1548 Red	Adventure Works	Adventure Works	Regular	Red	2091.48	2456.52	6
+4	2008-06-20	2008-06-27	306	384	19053	200806203CS586	348.58	758.0	6	0.0	4548.0	Adventure Works Laptop15.4W M1548 Red	Adventure Works	Adventure Works	Regular	Red	2091.48	2456.52	7
+In [21]:
+df.sample()
+Out[21]:
+Data Venda	Data Envio	ID Loja	ID Produto	ID Cliente	No. Venda	Custo Unitário	Preço Unitário	Quantidade	Valor Desconto	Valor Venda	Produto	Fabricante	Marca	Classe	Cor	Custo	Lucro	Tempo_Envio_Dias
+195	2008-06-11	2008-06-21	199	1226	18846	200806114CS618	330.99	999.0	12	0.0	11988.0	Fabrikam Trendsetter 1/3'' 8.5mm X200 Black	Fabrikam, Inc.	Fabrikam	Regular	Black	3971.88	8016.12	10
+Verificando a alteração:
+
+In [22]:
+df["Tempo_Envio_Dias"].dtype
+Out[22]:
+dtype('int64')
+Para finalmente o cálculo da média de dias de envio "por marca". Para isso, iremos agrupar a marca e depois agrupar novamente pelo tempo de envio, e por último, tirar a média
+
+In [23]:
+df.groupby("Marca")["Tempo_Envio_Dias"].mean()
+Out[23]:
+Marca
+Adventure Works    8.663866
+Contoso            8.470930
+Fabrikam           8.510121
+Name: Tempo_Envio_Dias, dtype: float64
+Para valores faltantes ou nulos
+In [24]:
+df.isnull().sum()
+Out[24]:
+Data Venda          0
+Data Envio          0
+ID Loja             0
+ID Produto          0
+ID Cliente          0
+No. Venda           0
+Custo Unitário      0
+Preço Unitário      0
+Quantidade          0
+Valor Desconto      0
+Valor Venda         0
+Produto             0
+Fabricante          0
+Marca               0
+Classe              0
+Cor                 0
+Custo               0
+Lucro               0
+Tempo_Envio_Dias    0
+dtype: int64
+In [25]:
+df.groupby([df["Data Venda"].dt.year, "Marca"])["Lucro"].sum()
+Out[25]:
+Data Venda  Marca          
+2008        Adventure Works    3.066412e+05
+            Contoso            5.641600e+04
+            Fabrikam           1.557021e+06
+2009        Adventure Works    4.053951e+05
+            Contoso            1.382590e+05
+            Fabrikam           1.034091e+06
+Name: Lucro, dtype: float64
+Formatando a saída:
+
+In [26]:
+pd.options.display.float_format = '{:20,.2f}'.format
+In [27]:
+df.groupby([df["Data Venda"].dt.year, "Marca"])["Lucro"].sum()
+Out[27]:
+Data Venda  Marca          
+2008        Adventure Works             306,641.16
+            Contoso                      56,416.00
+            Fabrikam                  1,557,020.55
+2009        Adventure Works             405,395.08
+            Contoso                     138,258.95
+            Fabrikam                  1,034,091.35
+Name: Lucro, dtype: float64
+In [28]:
+df.groupby([df["Data Venda"].dt.year, "Marca"])["Lucro"].sum()
+Out[28]:
+Data Venda  Marca          
+2008        Adventure Works             306,641.16
+            Contoso                      56,416.00
+            Fabrikam                  1,557,020.55
+2009        Adventure Works             405,395.08
+            Contoso                     138,258.95
+            Fabrikam                  1,034,091.35
+Name: Lucro, dtype: float64
+Armazenando esses dados num dataframe diferente:
+
+In [29]:
+lucro_ano = df.groupby([df["Data Venda"].dt.year, "Marca"])["Lucro"].sum()
+lucro_ano
+Out[29]:
+Data Venda  Marca          
+2008        Adventure Works             306,641.16
+            Contoso                      56,416.00
+            Fabrikam                  1,557,020.55
+2009        Adventure Works             405,395.08
+            Contoso                     138,258.95
+            Fabrikam                  1,034,091.35
+Name: Lucro, dtype: float64
+Porém, não ficou no formato tabular, para corrigir isso, devemos resetar o índice.
+
+In [30]:
+lucro_ano.reset_index()
+Out[30]:
+Data Venda	Marca	Lucro
+0	2008	Adventure Works	306,641.16
+1	2008	Contoso	56,416.00
+2	2008	Fabrikam	1,557,020.55
+3	2009	Adventure Works	405,395.08
+4	2009	Contoso	138,258.95
+5	2009	Fabrikam	1,034,091.35
+Para sabermos o total de produtos vendidos:
+
+In [31]:
+df.groupby("Produto")["Quantidade"].sum().sort_values()
+Out[31]:
+Produto
+Fabrikam Trendsetter 1/3'' 8.5mm X200 White          789
+Fabrikam Trendsetter 1/3'' 8.5mm X200 Grey           845
+Fabrikam Trendsetter 1/3'' 8.5mm X200 Black          884
+Fabrikam Trendsetter 2/3'' 17mm X100 Black           926
+Adventure Works Laptop15.4W M1548 Red               1047
+Fabrikam Trendsetter 2/3'' 17mm X100 Grey           1087
+Adventure Works Laptop15.4W M1548 Black             1089
+Headphone Adapter for Contoso Phone E130 White     25008
+Headphone Adapter for Contoso Phone E130 Silver    25232
+Name: Quantidade, dtype: int64
+Invertendo a ordem:
+
+In [32]:
+df.groupby("Produto")["Quantidade"].sum().sort_values(ascending=False)
+Out[32]:
+Produto
+Headphone Adapter for Contoso Phone E130 Silver    25232
+Headphone Adapter for Contoso Phone E130 White     25008
+Adventure Works Laptop15.4W M1548 Black             1089
+Fabrikam Trendsetter 2/3'' 17mm X100 Grey           1087
+Adventure Works Laptop15.4W M1548 Red               1047
+Fabrikam Trendsetter 2/3'' 17mm X100 Black           926
+Fabrikam Trendsetter 1/3'' 8.5mm X200 Black          884
+Fabrikam Trendsetter 1/3'' 8.5mm X200 Grey           845
+Fabrikam Trendsetter 1/3'' 8.5mm X200 White          789
+Name: Quantidade, dtype: int64
+Imprimindo o gráfico
+
+In [33]:
+df.groupby("Produto")["Quantidade"].sum().sort_values(ascending=False).plot.barh(title = "Total de Produtos Vendidos");
+
+Mudando os valores e o tipo do gráfico:
+
+In [34]:
+df.groupby(df["Data Venda"].dt.year)["Lucro"].sum().plot.bar(title="Lucro X Ano")
+plt.xlabel("Ano")
+plt.ylabel("Lucro");
+
+Escolhendo as vendas de 2009
+
+In [35]:
+df_vendas_2009 = df[df["Data Venda"].dt.year == 2009]
+In [36]:
+df_vendas_2009.sample()
+Out[36]:
+Data Venda	Data Envio	ID Loja	ID Produto	ID Cliente	No. Venda	Custo Unitário	Preço Unitário	Quantidade	Valor Desconto	Valor Venda	Produto	Fabricante	Marca	Classe	Cor	Custo	Lucro	Tempo_Envio_Dias
+130	2009-10-15	2009-10-23	199	1155	19004	200910154CS919	324.69	980.00	6	0.00	5,880.00	Fabrikam Trendsetter 2/3'' 17mm X100 Black	Fabrikam, Inc.	Fabrikam	Regular	Black	1,948.14	3,931.86	8
+In [37]:
+df_vendas_2009.groupby(df_vendas_2009["Data Venda"].dt.month)["Lucro"].sum().plot(title = "Lucro X Mês")
+plt.xlabel("Mês")
+plt.ylabel("Lucro")
+Out[37]:
+Text(0, 0.5, 'Lucro')
+
+A marca que representa o maior lucro em 2009:
+
+In [38]:
+df_vendas_2009.groupby("Marca")["Lucro"].sum().plot.bar(title = "Lucro por Marca")
+Out[38]:
+<matplotlib.axes._subplots.AxesSubplot at 0x7fb863066590>
+
+In [39]:
+df_vendas_2009.groupby("Marca")["Lucro"].sum().plot.bar(title = "Lucro por Marca")
+plt.xticks(rotation = 'horizontal');
+
+Lucro por classe em 2009:
+
+In [40]:
+df_vendas_2009.groupby("Classe")["Lucro"].sum().plot.bar(title = "Lucro por Classe")
+plt.xticks(rotation = 'horizontal');
+
+Análise estatística do tempo de envio:
+
+In [41]:
+df["Tempo_Envio_Dias"].describe()
+Out[41]:
+count                 904.00
+mean                    8.54
+std                     3.06
+min                     4.00
+25%                     6.00
+50%                     9.00
+75%                    11.00
+max                    20.00
+Name: Tempo_Envio_Dias, dtype: float64
+Gráfico de boxplot que explicita de forma gráfica os dados anteriores.
+
+In [42]:
+plt.boxplot(df["Tempo_Envio_Dias"]);
+
+Histograma
+
+In [43]:
+plt.hist(df["Tempo_Envio_Dias"]);
+
+Menor tempo de envio
+
+In [44]:
+df["Tempo_Envio_Dias"].min()
+Out[44]:
+4
+Já o maior tempo será:
+
+In [45]:
+df["Tempo_Envio_Dias"].max()
+Out[45]:
+20
+Como o valor mostrado no gráfico de bolplot, ele representa um valor anormal ou discrepante. Para identificá-lo:
+
+In [46]:
+df[df["Tempo_Envio_Dias"] == 20]
+Out[46]:
+Data Venda	Data Envio	ID Loja	ID Produto	ID Cliente	No. Venda	Custo Unitário	Preço Unitário	Quantidade	Valor Desconto	Valor Venda	Produto	Fabricante	Marca	Classe	Cor	Custo	Lucro	Tempo_Envio_Dias
+0	2008-05-09	2008-05-29	199	384	18839	200805093CS607	348.58	758.00	6	0.00	4,548.00	Adventure Works Laptop15.4W M1548 Red	Adventure Works	Adventure Works	Regular	Red	2,091.48	2,456.52	20
+Para exportar este dataframe usa-se o método to_csv()
+
+In [47]:
+df.to_csv("df_vendas_novo.csv", index=False)
